@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Книжный магазин</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 0.8em;
+            color: #777;
+        }
+
+        h3 {
+            text-align: center;
+            font-size: 1em;
+            color: #800000;
+        }
+
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        th {
+            text-align: left;
+            background-color: #f0b4c266;
+        }
+
+        img {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        form {
+            margin-top: 10px;
+        }
+
+        button[type="submit"] {
+            background-color: #;
+            background-color: #e03434;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        a {
+            color: #7d0f0f;
+
+        }
+    </style>
+</head>
+<body>
+
+<h1 th:text="|'${book.name}', ${book.author}"></h1>
+
+<table>
+    <tr>
+        <td class="book-info">
+            <div class="book-cover">
+                <h2 th:if="${book.isNew}">Новинка!</h2>
+                <img th:src="|/images/${book.cover}.png|" alt="Обложка" />
+                <h3 class="book-status" th:text="${book.status}"></h3>
+            </div>
+        </td>
+
+        <td>
+            <table>
+                <tr>
+                    <th>Год издания:</th>
+                    <td th:text="${book.publishYear}"></td>
+                </tr>
+                <tr>
+                    <th>Жанр:</th>
+                    <td th:text="${book.genre}"></td>
+                </tr>
+                <tr>
+                    <th>Язык:</th>
+                    <td th:text="${book.language}"></td>
+                </tr>
+                <tr>
+                    <th>ISBN:</th>
+                    <td th:text="${book.ISBN}"></td>
+                </tr>
+                <tr>
+                    <th>Цена:</th>
+                    <td th:text="${book.price}"></td>
+                </tr>
+                <tr>
+                    <th>Страниц:</th>
+                    <td th:text="${book.pages}"></td>
+                </tr>
+                <tr>
+                    <th>Аннотация:</th>
+                    <td th:text="${book.annotation}"></td>
+                </tr>
+                <tr>
+                    <th>Рейтинг:</th>
+                    <td th:text="${book.rating}"></td>
+                </tr>
+                <tr>
+                    <th>Количество:</th>
+                    <td th:text="${book.amount}"></td>
+                </tr>
+                <tr>
+                    <th>
+                        <form th:action="@{../addToCart}" method="post">
+                            <input type="hidden" th:name="bookId" th:value="${book.id}">
+                            <button type="submit" th:text="${amount} > 0 ? 'Добавить ещё' : 'Добавить в корзину'" th:disabled="${amount} >= ${book.amount}"> </button>
+                        </form>
+                    </th>
+                    <td>
+                        <div th:if="${amount} > 0">
+                            <p>Товар уже есть в корзине в количестве <span th:text="${amount}"></span></p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th></th>
+                    <td><a th:href="@{../cart}">Перейти в корзину</a></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>
