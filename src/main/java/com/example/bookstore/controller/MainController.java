@@ -37,4 +37,5 @@ public class MainController {
         storageService.addToCart(id);
         return "redirect:/book/?id="+id;
     }
+
 }

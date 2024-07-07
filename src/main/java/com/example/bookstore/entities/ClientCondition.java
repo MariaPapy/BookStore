@@ -1,6 +1,13 @@
 package com.example.bookstore.entities;
 
+import lombok.AllArgsConstructor;
+
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class ClientCondition {
+
     private int id;
     private String name;
     private String author;
@@ -16,29 +23,4 @@ public class ClientCondition {
         this.amount = amount;
         this.total = (float) (Math.round(price * amount * 100.0) / 100.0);
     }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public float getPrice() {
-        return price;
-    }
-
-    public int getAmount() {
-        return amount;
-    }
-
-    public float getTotal() {
-        return total;
-    }
-
 }
