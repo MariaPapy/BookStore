@@ -7,10 +7,11 @@ import org.springframework.stereotype.Repository;
 import java.util.*;
 
 @Repository
-public interface DaOService extends CrudRepository<BookDaO, Integer> {
+public interface BookStorage extends CrudRepository<BookDaO, Integer> {
+
     List<BookDaO> findAll();
 
-    BookDaO findById(int integer);
+    BookDaO findById(int id);
 
     List<String> genres = List.of("Роман", "Фэнтези", "Детектив", "Научная фантастика");
     List<String> languages = List.of("Русский", "Английский", "Французский", "Итальянский");

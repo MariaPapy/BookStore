@@ -1,25 +1,33 @@
 package com.example.bookstore.service;
 
-import com.example.bookstore.entities.Book;
-import com.example.bookstore.entities.ClientCondition;
-import com.example.bookstore.entities.BookDaO;
-
+import com.example.bookstore.cart.ConditionCart;
+import com.example.bookstore.cart.ConditionCartDaO;
+import com.example.bookstore.entities.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
 public class StorageService {
-    private static Map<Integer, Integer> cart = new HashMap<>();
-    private DaOService daOService;
+    private BookStorage bookStorage;
+    private UserStorage userStorage;
+    private CartStorage cartStorage;
     @Autowired
-    public void setDaOService(DaOService daOService) {
-        this.daOService = daOService;
+    public void setBookRepository(BookStorage bookStorage) {
+        this.bookStorage = bookStorage;
+    }
+    @Autowired
+    public void setUserRepository(UserStorage userStorage) {
+        this.userStorage = userStorage;
+    }
+    @Autowired
+    public void setCart(CartStorage cartStorage) {
+        this.cartStorage = cartStorage;
     }
     public List<Book> getBooks() {
         List<Book> books = new ArrayList<>();
         List<BookDaO> booksDaO;
-        booksDaO = daOService.findAll();
+        booksDaO = bookStorage.findAll();
         for (BookDaO bookDaO : booksDaO) {
             books.add(new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover()));
         }
@@ -27,59 +35,53 @@ public class StorageService {
     }
 
     public BookDaO addBook(BookDaO bookDaO) {
-        return daOService.save(bookDaO);
+        return bookStorage.save(bookDaO);
     }
 
     public Book getBook(int id) {
-        BookDaO bookDaO = daOService.findById(id);
+        BookDaO bookDaO = bookStorage.findById(id);
         return new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover());
     }
 
 
-    public void addToCart(int id) {
-        if (cart.containsKey(id)) {
-            cart.replace(id,cart.get(id)+1);
+    public void addToCart(int user_id, int book_id) {
+        ConditionCartDaO oldConditionCartDaO = cartStorage.findByUserIdAndBookId(user_id, book_id);
+        if (oldConditionCartDaO != null) {
+            oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()+1);
+            cartStorage.save(oldConditionCartDaO);
         }
         else {
-            cart.put(id,1);
+            ConditionCartDaO newConditionCartDaO = new ConditionCartDaO(null, bookStorage.findById(book_id), 1, userStorage.findById(user_id));
+            cartStorage.save(newConditionCartDaO);
         }
-        System.out.println(cart.get(id));
     }
 
-    public Integer getCartAmount(int id) {
-        if (cart.containsKey(id)) {
-            return cart.get(id);
+    public Integer getCartAmount(int user_id, int book_id) {
+        ConditionCartDaO oldConditionCartDaO = cartStorage.findByUserIdAndBookId(user_id, book_id);
+        if (oldConditionCartDaO != null) {
+            return oldConditionCartDaO.getAmount();
         }
-        return 0;
+        else {
+            return 0;
+        }
     }
 
-    public List<ClientCondition> getCartBooks() {
-        List<ClientCondition> booksInCart = new ArrayList<>();
-        for (Integer bookId : cart.keySet()) {
-            Optional<BookDaO> bd = daOService.findById(bookId);
-            if (bd.isPresent()) {
-                BookDaO book = bd.get();
-                ClientCondition cartPosition = new ClientCondition(book.getId(), book.getName(), book.getAuthor(), book.getPrice(), cart.get(bookId));
-                booksInCart.add(cartPosition);
-            }
+    public List<ConditionCart> getCartBooks(int id) {
+        List<ConditionCartDaO> cartPositionsDaO = cartStorage.findByUserId(id);
+        List<ConditionCart> booksInCart = new ArrayList<>();
+        for (ConditionCartDaO conditionCartDaO : cartPositionsDaO) {
+            ConditionCart conditionCart = new ConditionCart(conditionCartDaO.getId(), conditionCartDaO.getBook(), conditionCartDaO.getAmount(), userStorage.findById(UserStorage.curUser));
+            booksInCart.add(conditionCart);
         }
         return booksInCart;
     }
-    public float getCartTotal() {
-        float total = 0;
-        for (Integer bookId : cart.keySet()) {
-            Optional<BookDaO> bd = daOService.findById(bookId);
-            if (bd.isPresent()) {
-                BookDaO book = bd.get();
-                total += cart.get(bookId) * book.getPrice();
-            }
-        }
-        return (float) (Math.round(total * 100.0) / 100.0);
+    public float getCartTotal(int id) {
+        return cartStorage.getTotalPriceByUserId(id);
     }
     public List<String> getGenres() {
-        return daOService.getGenres();
+        return bookStorage.getGenres();
     }
     public List<String> getLanguages() {
-        return daOService.getLanguages();
+        return bookStorage.getLanguages();
     }
 }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Книжный магазин</title>
+</head>
+<body>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-top: 20px;
+    }
+    form {
+        width: 50%;
+        margin: 0 auto;
+        margin-top: 20px;
+    }
+    label {
+        display: inline-block;
+        width: 150px;
+        text-align: left;
+        margin-right: 10px;
+    }
+    input[type="text"], input[type="password"], select, textarea {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 10px;
+    }
+    input[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        opacity: 0.9;
+    }
+    button:hover {
+        opacity: 1;
+    }
+</style>
+
+<form method="post" action="/login">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <label for="username">Логин:</label>
+    <input type="text" id="username" name="username"><br><br>
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" name="password"><br><br>
+    <input type="submit" value="Войти">
+</form>
+
+</body>
+</html>
