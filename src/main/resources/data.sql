@@ -32,21 +32,5 @@ VALUES (
   2
 );
 
-INSERT INTO BOOKS (NAME, AUTHOR, BOOK_LANGUAGE, PUBLISH_YEAR, GENRE, ISBN, PRICE, PAGES, ANNOTATION, RATING, IS_NEW, AMOUNT, COVER)
-VALUES (
-  'Мастер и Маргарита',
-  'Михаил Булгаков',
-  'Русский',
-  2021,
-  'Роман',
-  '978-5-04-094927-5',
-  400,
-  432,
-  'Философский роман о противостоянии добра и зла в Москве 1930-х годов.',
-  9,
-  true,
-  4,
-  2
-);
 
 

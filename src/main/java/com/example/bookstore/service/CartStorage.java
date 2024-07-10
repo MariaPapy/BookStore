@@ -14,6 +14,6 @@ public interface CartStorage extends CrudRepository<ConditionCartDaO, Integer> {
 
     ConditionCartDaO findByUserIdAndBookId(int curUser, int id);
 
-    @Query("SELECT SUM(cp.amount * b.price) FROM ConditionCartDaO cp JOIN cp.book b WHERE cp.user.id = :userId")
+    @Query("SELECT COALESCE(SUM(cp.amount * b.price), 0) FROM ConditionCartDaO cp JOIN cp.book b WHERE cp.user.id = :userId")
     Float getTotalPriceByUserId(Integer userId);
 }

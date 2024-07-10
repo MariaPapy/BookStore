@@ -1,4 +1,5 @@
 package com.example.bookstore;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
@@ -39,9 +40,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Override
         protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
-            String page = cacheService.getPage();
-            cacheService.setPage(null);
-            return page != null ? page : "/";
+            String page = (String) request.getSession().getAttribute("previousUrl");
+            request.getSession().removeAttribute("previousUrl"); // Удаляем предыдущий URL из сессии
+            return page != null ? page : "/"; // Перенаправляем на previousUrl, если он доступен, иначе на главную страницу
         }
     }
 
@@ -49,13 +50,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/", "/book/**", "/h2-console/**").permitAll()
+                .antMatchers("/", "/book/", "/h2-console/").permitAll()
                 .antMatchers("/cart", "/addToCart").hasRole("USER")
                 .antMatchers("/employee/**").hasRole("ADMIN")
                 .and()
                 .formLogin()
                 .loginPage("/login")
-                .successHandler(new CustomAuthenticationSuccessHandler())
+                .successHandler(new CustomAuthenticationSuccessHandler()) // Устанавливаем обработчик успешного входа
                 .permitAll()
                 .and()
                 .logout()

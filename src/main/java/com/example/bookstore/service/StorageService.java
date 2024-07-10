@@ -1,33 +1,32 @@
 package com.example.bookstore.service;
 
-import com.example.bookstore.cart.ConditionCart;
-import com.example.bookstore.cart.ConditionCartDaO;
 import com.example.bookstore.entities.*;
+import com.example.bookstore.cart.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
 public class StorageService {
-    private BookStorage bookStorage;
-    private UserStorage userStorage;
-    private CartStorage cartStorage;
+    private BookStorage bookRepository;
+    private UserStorage userRepository;
+    private CartStorage cartRepository;
     @Autowired
-    public void setBookRepository(BookStorage bookStorage) {
-        this.bookStorage = bookStorage;
+    public void setBookRepository(BookStorage bookRepository) {
+        this.bookRepository = bookRepository;
     }
     @Autowired
-    public void setUserRepository(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public void setUserRepository(UserStorage userRepository) {
+        this.userRepository = userRepository;
     }
     @Autowired
-    public void setCart(CartStorage cartStorage) {
-        this.cartStorage = cartStorage;
+    public void setCart(CartStorage cartRepository) {
+        this.cartRepository = cartRepository;
     }
     public List<Book> getBooks() {
         List<Book> books = new ArrayList<>();
         List<BookDaO> booksDaO;
-        booksDaO = bookStorage.findAll();
+        booksDaO = bookRepository.findAll();
         for (BookDaO bookDaO : booksDaO) {
             books.add(new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover()));
         }
@@ -35,29 +34,38 @@ public class StorageService {
     }
 
     public BookDaO addBook(BookDaO bookDaO) {
-        return bookStorage.save(bookDaO);
+        return bookRepository.save(bookDaO);
     }
 
     public Book getBook(int id) {
-        BookDaO bookDaO = bookStorage.findById(id);
+        BookDaO bookDaO = bookRepository.findById(id);
         return new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover());
     }
 
-
-    public void addToCart(int user_id, int book_id) {
-        ConditionCartDaO oldConditionCartDaO = cartStorage.findByUserIdAndBookId(user_id, book_id);
-        if (oldConditionCartDaO != null) {
-            oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()+1);
-            cartStorage.save(oldConditionCartDaO);
+    public void subtractFromCart(int user_id, int book_id, int amount) {
+        ConditionCartDaO oldConditionCartDaO = cartRepository.findByUserIdAndBookId(user_id, book_id);
+        if (oldConditionCartDaO.getAmount()-amount <= 0) {
+            cartRepository.delete(oldConditionCartDaO);
         }
         else {
-            ConditionCartDaO newConditionCartDaO = new ConditionCartDaO(null, bookStorage.findById(book_id), 1, userStorage.findById(user_id));
-            cartStorage.save(newConditionCartDaO);
+            oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()-amount);
+            cartRepository.save(oldConditionCartDaO);
+        }
+    }
+    public void addToCart(int user_id, int book_id) {
+        ConditionCartDaO oldConditionCartDaO = cartRepository.findByUserIdAndBookId(user_id, book_id);
+        if (oldConditionCartDaO != null) {
+            oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()+1);
+            cartRepository.save(oldConditionCartDaO);
+        }
+        else {
+            ConditionCartDaO newConditionCartDaO = new ConditionCartDaO(null, bookRepository.findById(book_id), 1, userRepository.findById(user_id));
+            cartRepository.save(newConditionCartDaO);
         }
     }
 
     public Integer getCartAmount(int user_id, int book_id) {
-        ConditionCartDaO oldConditionCartDaO = cartStorage.findByUserIdAndBookId(user_id, book_id);
+        ConditionCartDaO oldConditionCartDaO = cartRepository.findByUserIdAndBookId(user_id, book_id);
         if (oldConditionCartDaO != null) {
             return oldConditionCartDaO.getAmount();
         }
@@ -66,22 +74,22 @@ public class StorageService {
         }
     }
 
-    public List<ConditionCart> getCartBooks(int id) {
-        List<ConditionCartDaO> cartPositionsDaO = cartStorage.findByUserId(id);
-        List<ConditionCart> booksInCart = new ArrayList<>();
+    public List<ConditionConditionCart> getCartBooks(int id) {
+        List<ConditionCartDaO> cartPositionsDaO = cartRepository.findByUserId(id);
+        List<ConditionConditionCart> booksInCart = new ArrayList<>();
         for (ConditionCartDaO conditionCartDaO : cartPositionsDaO) {
-            ConditionCart conditionCart = new ConditionCart(conditionCartDaO.getId(), conditionCartDaO.getBook(), conditionCartDaO.getAmount(), userStorage.findById(UserStorage.curUser));
+            ConditionConditionCart conditionCart = new ConditionConditionCart(conditionCartDaO.getId(), conditionCartDaO.getBook(), conditionCartDaO.getAmount(), userRepository.findById(UserStorage.curUser));
             booksInCart.add(conditionCart);
         }
         return booksInCart;
     }
     public float getCartTotal(int id) {
-        return cartStorage.getTotalPriceByUserId(id);
+        return cartRepository.getTotalPriceByUserId(id);
     }
     public List<String> getGenres() {
-        return bookStorage.getGenres();
+        return bookRepository.getGenres();
     }
     public List<String> getLanguages() {
-        return bookStorage.getLanguages();
+        return bookRepository.getLanguages();
     }
 }

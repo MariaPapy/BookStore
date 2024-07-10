@@ -53,8 +53,7 @@
         }
 
         button[type="submit"] {
-            background-color: #;
-            background-color: #e03434;
+            background-color: #f0b4c2;;
             color: white;
             padding: 8px 15px;
             border: none;
@@ -63,11 +62,42 @@
         }
 
         button[type="submit"]:hover {
-            background-color: #45a049;
+            background-color: #d97e8c;
         }
+
         a {
             color: #7d0f0f;
+            text-decoration: none;
+            display: block; /* Кнопка занимает всю ширину ячейки */
+            margin: 10px auto; /* Выравнивание по центру */
+            padding: 10px 20px;
+            background-color: #f0b4c2; /* Розовый цвет */
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
 
+        a:hover {
+            background-color: #d97e8c; /* Более насыщенный розовый при наведении */
+            cursor: pointer;
+        }
+
+                .continue-shopping {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #f0b4c2;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .continue-shopping:hover {
+            background-color: #d97e8c;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -120,10 +150,6 @@
                     <td th:text="${book.rating}"></td>
                 </tr>
                 <tr>
-                    <th>Количество:</th>
-                    <td th:text="${book.amount}"></td>
-                </tr>
-                <tr>
                     <th>
                         <form th:action="@{../addToCart}" method="post">
                             <input type="hidden" th:name="bookId" th:value="${book.id}">
@@ -136,14 +162,18 @@
                         </div>
                     </td>
                 </tr>
-                <tr>
-                    <th></th>
-                    <td><a th:href="@{../cart}">Перейти в корзину</a></td>
-                </tr>
             </table>
+
+            <a th:href="@{../cart}">Перейти в корзину</a>
+
         </td>
     </tr>
 </table>
 
+<div sec:authorize="isAnonymous()">
+    <a th:href="@{../}" class="continue-shopping">Продолжить покупки</a>
+</div>
+
 </body>
 </html>
+
