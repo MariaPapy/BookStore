@@ -1,11 +1,13 @@
-package com.example.bookstore.cart;
+package com.example.bookstore.user;
 
 import com.example.bookstore.entities.BookDaO;
+import lombok.NoArgsConstructor;
 
-public class ConditionConditionCart extends ConditionCartDaO {
+
+public class ConditionCart extends ConditionCartDaO {
     private final float total;
 
-    public ConditionConditionCart(Integer id, BookDaO book, int amount, User user) {
+    public ConditionCart(Integer id, BookDaO book, int amount, User user) {
         super(id, book, amount, user);
         this.total = (float) (Math.round(book.getPrice() * amount ));
     }

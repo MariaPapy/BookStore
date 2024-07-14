@@ -1,32 +1,47 @@
 package com.example.bookstore.service;
 
 import com.example.bookstore.entities.*;
-import com.example.bookstore.cart.*;
+import com.example.bookstore.user.*;
+import com.example.bookstore.storage.BookStorage;
+import com.example.bookstore.storage.CartStorage;
+import com.example.bookstore.storage.UserStorage;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
 public class StorageService {
-    private BookStorage bookRepository;
-    private UserStorage userRepository;
-    private CartStorage cartRepository;
+    private BCryptPasswordEncoder passwordEncoder;
+    private BookStorage bookstorage;
+    private UserStorage userstorage;
+    private CartStorage cartstorage;
     @Autowired
-    public void setBookRepository(BookStorage bookRepository) {
-        this.bookRepository = bookRepository;
+    public void setBookstorage(BookStorage bookstorage) {
+        this.bookstorage = bookstorage;
     }
     @Autowired
-    public void setUserRepository(UserStorage userRepository) {
-        this.userRepository = userRepository;
+    public void setUserstorage(UserStorage userstorage) {
+        this.userstorage = userstorage;
     }
     @Autowired
-    public void setCart(CartStorage cartRepository) {
-        this.cartRepository = cartRepository;
+    public void setCart(CartStorage cartstorage) {
+        this.cartstorage = cartstorage;
     }
+
+    @Autowired
+    @Qualifier("storageServicePasswordEncoder")
+    public void setPasswordEncoder(BCryptPasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
+
     public List<Book> getBooks() {
         List<Book> books = new ArrayList<>();
         List<BookDaO> booksDaO;
-        booksDaO = bookRepository.findAll();
+        booksDaO = bookstorage.findAll();
         for (BookDaO bookDaO : booksDaO) {
             books.add(new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover()));
         }
@@ -34,38 +49,43 @@ public class StorageService {
     }
 
     public BookDaO addBook(BookDaO bookDaO) {
-        return bookRepository.save(bookDaO);
+        return bookstorage.save(bookDaO);
     }
 
     public Book getBook(int id) {
-        BookDaO bookDaO = bookRepository.findById(id);
+        BookDaO bookDaO = bookstorage.findById(id);
         return new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover());
     }
 
     public void subtractFromCart(int user_id, int book_id, int amount) {
-        ConditionCartDaO oldConditionCartDaO = cartRepository.findByUserIdAndBookId(user_id, book_id);
-        if (oldConditionCartDaO.getAmount()-amount <= 0) {
-            cartRepository.delete(oldConditionCartDaO);
+        ConditionCartDaO oldConditionCartDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
+        if (oldConditionCartDaO.getAmount() - amount <= 0) {
+            cartstorage.delete(oldConditionCartDaO);
         }
         else {
             oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()-amount);
-            cartRepository.save(oldConditionCartDaO);
+            cartstorage.save(oldConditionCartDaO);
         }
     }
+
+    public void clearCart(int user_id) {
+        cartstorage.deleteByUserId(user_id);
+    }
+
     public void addToCart(int user_id, int book_id) {
-        ConditionCartDaO oldConditionCartDaO = cartRepository.findByUserIdAndBookId(user_id, book_id);
+        ConditionCartDaO oldConditionCartDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
         if (oldConditionCartDaO != null) {
             oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()+1);
-            cartRepository.save(oldConditionCartDaO);
+            cartstorage.save(oldConditionCartDaO);
         }
         else {
-            ConditionCartDaO newConditionCartDaO = new ConditionCartDaO(null, bookRepository.findById(book_id), 1, userRepository.findById(user_id));
-            cartRepository.save(newConditionCartDaO);
+            ConditionCartDaO newConditionCartDaO = new ConditionCartDaO(null, bookstorage.findById(book_id), 1, userstorage.findById(user_id));
+            cartstorage.save(newConditionCartDaO);
         }
     }
 
     public Integer getCartAmount(int user_id, int book_id) {
-        ConditionCartDaO oldConditionCartDaO = cartRepository.findByUserIdAndBookId(user_id, book_id);
+        ConditionCartDaO oldConditionCartDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
         if (oldConditionCartDaO != null) {
             return oldConditionCartDaO.getAmount();
         }
@@ -74,22 +94,21 @@ public class StorageService {
         }
     }
 
-    public List<ConditionConditionCart> getCartBooks(int id) {
-        List<ConditionCartDaO> cartPositionsDaO = cartRepository.findByUserId(id);
-        List<ConditionConditionCart> booksInCart = new ArrayList<>();
+    public List<ConditionCart> getCartBooks(int id) {
+        List<ConditionCartDaO> cartPositionsDaO = cartstorage.findByUserId(id);
+        List<ConditionCart> booksInCart = new ArrayList<>();
         for (ConditionCartDaO conditionCartDaO : cartPositionsDaO) {
-            ConditionConditionCart conditionCart = new ConditionConditionCart(conditionCartDaO.getId(), conditionCartDaO.getBook(), conditionCartDaO.getAmount(), userRepository.findById(UserStorage.curUser));
+            ConditionCart conditionCart = new ConditionCart(conditionCartDaO.getId(), conditionCartDaO.getBook(), conditionCartDaO.getAmount(), userstorage.findById(UserStorage.curUser));
             booksInCart.add(conditionCart);
         }
         return booksInCart;
     }
     public float getCartTotal(int id) {
-        return cartRepository.getTotalPriceByUserId(id);
+        return cartstorage.getTotalPriceByUserId(id);
     }
-    public List<String> getGenres() {
-        return bookRepository.getGenres();
+
+    public void addUser(String username, String password) {
+        userstorage.save(new User(null, username, passwordEncoder.encode(password), "ROLE_USER"));
     }
-    public List<String> getLanguages() {
-        return bookRepository.getLanguages();
-    }
+
 }

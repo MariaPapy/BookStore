@@ -1,4 +1,4 @@
-package com.example.bookstore.cart;
+package com.example.bookstore.user;
 
 import com.example.bookstore.entities.BookDaO;
 import lombok.AllArgsConstructor;
@@ -8,12 +8,12 @@ import lombok.Setter;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "cart_positions")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "condition_cart")
 public class ConditionCartDaO {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

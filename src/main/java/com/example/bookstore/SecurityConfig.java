@@ -4,12 +4,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
-import com.example.bookstore.cart.User;
+import com.example.bookstore.user.User;
 import com.example.bookstore.service.CacheService;
-import com.example.bookstore.service.UserStorage;
+import com.example.bookstore.storage.UserStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -41,8 +43,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
             String page = (String) request.getSession().getAttribute("previousUrl");
-            request.getSession().removeAttribute("previousUrl"); // Удаляем предыдущий URL из сессии
-            return page != null ? page : "/"; // Перенаправляем на previousUrl, если он доступен, иначе на главную страницу
+            request.getSession().removeAttribute("previousUrl");
+            return page != null ? page : "/"; // Перенаправляем на previousUrl
         }
     }
 
@@ -56,13 +58,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .formLogin()
                 .loginPage("/login")
-                .successHandler(new CustomAuthenticationSuccessHandler()) // Устанавливаем обработчик успешного входа
+                .successHandler(new CustomAuthenticationSuccessHandler()) //обработчик успешного входа
                 .permitAll()
                 .and()
                 .logout()
                 .logoutUrl("/logout")
                 .logoutSuccessUrl("/")
-                .permitAll();
+                .permitAll()
+                .and()
+                .csrf()
+                .ignoringAntMatchers("/h2-console/**")
+                .and()
+                .headers()
+                .frameOptions()
+                .sameOrigin()
+                .disable();
     }
 
     @Override
@@ -78,15 +88,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
                 User user = userStorage.findByLogin(username);
                 if (user == null) {
-                    throw new UsernameNotFoundException("User not found");
+                    throw new UsernameNotFoundException("Пользователь не найден");
                 }
                 return user;
             }
         };
     }
 
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {return super.authenticationManagerBean();
+    }
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 }

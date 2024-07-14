@@ -59,6 +59,21 @@
     input[type="submit"]:hover {
         opacity: 1;
     }
+
+            .clear-cart-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #f0b4c2;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .clear-cart-button:hover {
+            background-color: #d97e8c; /* Цвет фона при наведении */
 </style>
 
 <form method="post" action="/login">
@@ -69,6 +84,11 @@
     <label for="password">Пароль:</label>
     <input type="password" id="password" name="password"><br><br>
     <input type="submit" value="Войти">
+</form>
+
+    <h1>Ещё нет аккаунта? Зарегистрируйтесь: </h1>
+<a th:href="@{../registration}" class="clear-cart-button">Зарегистрироваться</a>
+
 </form>
 
 </body>

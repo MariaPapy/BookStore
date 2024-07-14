@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
 <head>
     <meta charset="UTF-8">
-    <title>Книжный магазин</title>
+    <title>Оформленный заказ</title>
     <style>
         body {
             font-family: sans-serif;
@@ -42,6 +43,12 @@
         h2 {
             text-align: center;
             margin-top: 20px;
+            color: #333;
+        }
+
+        h3 {
+            text-align: center;
+            margin-top: 10px;
             color: #333;
         }
 
@@ -86,9 +93,37 @@
         .clear-cart-button:hover {
             background-color: #d97e8c; /* Цвет фона при наведении */
 
+        .continue-shopping {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #f0b4c2;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .continue-shopping:hover {
+            background-color: #d97e8c;
+            cursor: pointer;
+        }
+
+        img {
+            display: block; /* Занимаем всю доступную ширину */
+            margin: 20px auto; /* Центрируем по горизонтали */
+            max-width: 50px; /* Максимальная ширина */
+            height: auto; /* Автоматически устанавливаем высоту */
+        }
 
     </style>
+</head>
 <body>
+
+<h2 th:text="'Ваш заказ оформлен: ' + ${formattedNow}"></h2>
+
+
 <table>
     <thead>
     <tr>
@@ -97,7 +132,6 @@
         <th>Цена</th>
         <th>Количество</th>
         <th>Стоимость</th>
-        <th></th>
     </tr>
     </thead>
     <tbody>
@@ -107,28 +141,24 @@
         <td style="text-align: center;" th:text="${book.book.price}"></td>
         <td style="text-align: center;" th:text="${book.amount}"></td>
         <td style="text-align: center;" th:text="${book.total}"></td>
-                <td>
-                    <div style="display: flex; justify-content: center;">
-                    <form method="post" th:action="@{/subtractInCart}">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        <input type="hidden" name="bookId" th:value="${book.book.id}" />
-                        <button type="submit"><img src="/images/delete.png" alt="Удалить" style="width: 30px; height: 30px; padding: 0px; "></button>
-                    </form>
-                    </div>
-                </td>
     </tr>
     </tbody>
 </table>
 <h2 th:text="|ИТОГО к оплате: ${total}"></h2>
 
-<a th:href="@{../order}" class="clear-cart-button">Оформить заказ</a>
+<h3>В настоящее время оплатить заказ можно только при получении: картой или наличными, приносим свои извинения.</h3>
+<h2 th:text="'Заказ будет доставлен в магазин по адресу: улица Котиков, 55.' "></h2>
+<h2 th:text="'Вы сможете получить заказ с ' + ${formattedDatePlus3Days} + ' в течение 5 дней.'"></h2>
 
-<div th:if="${error != null}" class="error">
-    <h2 th:text="${error}"></h2>
+
+<div style="display: flex; align-items: center;">
+    <img th:src="|/images/order.png|" style="width: 150px; height: auto; display: block; margin: 0 auto;" />
 </div>
 
+<h3>Спасибо за покупку:)</h3>
+
 <div sec:authorize="isAnonymous()">
-    <a th:href="@{../}" class="continue-shopping">Продолжить покупки</a>
+    <a th:href="@{../}" class="continue-shopping">Вернуться в каталог</a>
 </div>
 
 </body>

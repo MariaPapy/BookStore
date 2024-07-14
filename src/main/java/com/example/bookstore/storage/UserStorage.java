@@ -1,6 +1,6 @@
-package com.example.bookstore.service;
+package com.example.bookstore.storage;
 
-import com.example.bookstore.cart.User;
+import com.example.bookstore.user.User;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
