@@ -48,10 +48,6 @@ public class StorageService {
         return books;
     }
 
-    public BookDaO addBook(BookDaO bookDaO) {
-        return bookstorage.save(bookDaO);
-    }
-
     public Book getBook(int id) {
         BookDaO bookDaO = bookstorage.findById(id);
         return new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover());
@@ -109,6 +105,18 @@ public class StorageService {
 
     public void addUser(String username, String password) {
         userstorage.save(new User(null, username, passwordEncoder.encode(password), "ROLE_USER"));
+    }
+
+
+    public List<String> getGenres() {
+        return bookstorage.getGenres();
+    }
+    public List<String> getLanguages() {
+        return bookstorage.getLanguages();
+    }
+
+    public BookDaO addBook(BookDaO bookDaO) {
+        return bookstorage.save(bookDaO);
     }
 
 }
