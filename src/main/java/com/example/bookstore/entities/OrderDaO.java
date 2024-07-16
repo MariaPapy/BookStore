@@ -1,13 +1,18 @@
 package com.example.bookstore.entities;
 
-import com.example.bookstore.user.ConditionCart;
 import com.example.bookstore.user.ConditionCartDaO;
 import com.example.bookstore.user.User;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
+@Getter
+@Setter
 @Entity
 @Table(name="orders")
 public class OrderDaO {
@@ -41,29 +46,6 @@ public class OrderDaO {
         this.user = user;
     }
 
-    public float getTotal() {
-        return total;
-    }
-
-    public void setTotal(float total) {
-        this.total = total;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public List<ConditionCartDaO> getCartPositions() {
         return cartPositions;
@@ -73,25 +55,9 @@ public class OrderDaO {
         this.cartPositions = cartPositions;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Date getOrderTime() {
-        return orderTime;
-    }
-
-    public void setOrderTime(Date orderTime) {
-        this.orderTime = orderTime;
-    }
-
     public void setFinished() {
         setOrderTime(new java.util.Date());
-        setStatus("Оформлено");
+        setStatus("Заказ оформлен");
         StringBuilder text = new StringBuilder();
         float price = 0;
         for (ConditionCartDaO cart : this.cartPositions) {
@@ -102,3 +68,4 @@ public class OrderDaO {
         setTotal(price);
     }
 }
+

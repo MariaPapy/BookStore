@@ -10,7 +10,7 @@ public class Book extends BookDaO {
             this.status = "Осталось мало, торопитесь!";
         }
         if (amount < 1) {
-            this.status = "Товар закончился(";
+            this.status = "Товара нет на складе(";
         }
     }
 

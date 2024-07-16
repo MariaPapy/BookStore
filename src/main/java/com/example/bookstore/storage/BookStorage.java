@@ -13,16 +13,13 @@ public interface BookStorage extends CrudRepository<BookDaO, Integer> {
 
     BookDaO findById(int id);
 
-
     default List<String> getGenres() {
-        return genres;
+        return Arrays.asList("Роман", "Антиутопия", "Детская литература", "Детектив");
     }
 
     default List<String> getLanguages() {
-        return languages;
+        return Arrays.asList("Русский", "Английский", "Китайский", "Японский");
     }
 
-    List<String> genres = List.of("Роман", "Антиутопия", "Детская литература", "Детектив");
-    List<String> languages = List.of("Русский", "Английский", "Китайский", "Японский");
 
 }

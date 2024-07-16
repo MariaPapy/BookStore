@@ -121,34 +121,26 @@
 </head>
 <body>
 
-<h2 th:text="'Ваш заказ оформлен: ' + ${formattedNow}"></h2>
-
-
+<h1>Ваши заказы:</h1>
 <table>
-    <thead>
     <tr>
-        <th>Название</th>
-        <th>Автор</th>
-        <th>Цена</th>
-        <th>Количество</th>
+        <th>ID</th>
+        <th>Статус</th>
+        <th>Время оформления</th>
+        <th>Книги</th>
         <th>Стоимость</th>
     </tr>
-    </thead>
-    <tbody>
-    <tr th:each="book : ${cart}">
-        <td><a th:href="@{/book/(id=${book.id})}" th:text="${book.book.name}"></a></td>
-        <td th:text="${book.book.author}"></td>
-        <td style="text-align: center;" th:text="${book.book.price}"></td>
-        <td style="text-align: center;" th:text="${book.amount}"></td>
-        <td style="text-align: center;" th:text="${book.total}"></td>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.status}"></td>
+        <td th:text="${order.orderTime}"></td>
+        <td th:text="${order.desc}"></td>
+        <td th:text="${order.total}"></td>
     </tr>
-    </tbody>
 </table>
-<h2 th:text="|ИТОГО к оплате: ${total}"></h2>
 
 <h3>В настоящее время оплатить заказ можно только при получении: картой или наличными, приносим свои извинения.</h3>
 <h2 th:text="'Заказ будет доставлен в магазин по адресу: улица Котиков, 55.' "></h2>
-<h2 th:text="'Вы сможете получить заказ с ' + ${formattedDatePlus3Days} + ' в течение 5 дней.'"></h2>
 
 
 <div style="display: flex; align-items: center;">
@@ -157,9 +149,10 @@
 
 <h3>Спасибо за покупку:)</h3>
 
-<div sec:authorize="isAnonymous()">
+<div>
     <a th:href="@{../}" class="continue-shopping">Вернуться в каталог</a>
 </div>
+
 
 </body>
 </html>

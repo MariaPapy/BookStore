@@ -4,11 +4,13 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class CacheService {
-    private String page;
-    public void setPage(String page) {
-        this.page = page;
+    private String cachedPage;
+
+    public void setCachedPage(String page) {
+        this.cachedPage = page;
     }
-    public String getPage() {
-        return page;
+
+    public String getCachedPage() {
+        return cachedPage;
     }
 }

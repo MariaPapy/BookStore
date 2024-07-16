@@ -121,13 +121,16 @@
 </table>
 <h2 th:text="|ИТОГО к оплате: ${total}"></h2>
 
-<a th:href="@{../order}" class="clear-cart-button">Оформить заказ</a>
+<form method="post" th:action="@{/createOrder}">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    <button type="submit" class="clear-cart-button" th:disabled="${cartEmpty}">Оформить заказ</button>
+</form>
 
 <div th:if="${error != null}" class="error">
     <h2 th:text="${error}"></h2>
 </div>
 
-<div sec:authorize="isAnonymous()">
+<div>
     <a th:href="@{../}" class="continue-shopping">Продолжить покупки</a>
 </div>
 

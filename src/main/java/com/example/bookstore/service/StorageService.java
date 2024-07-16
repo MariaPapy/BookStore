@@ -5,12 +5,15 @@ import com.example.bookstore.user.*;
 import com.example.bookstore.storage.BookStorage;
 import com.example.bookstore.storage.CartStorage;
 import com.example.bookstore.storage.UserStorage;
+import com.example.bookstore.storage.OrderRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
 import java.util.*;
 
 @Service
@@ -19,6 +22,7 @@ public class StorageService {
     private BookStorage bookstorage;
     private UserStorage userstorage;
     private CartStorage cartstorage;
+    private OrderRepository orderRepository;
     @Autowired
     public void setBookstorage(BookStorage bookstorage) {
         this.bookstorage = bookstorage;
@@ -31,6 +35,8 @@ public class StorageService {
     public void setCart(CartStorage cartstorage) {
         this.cartstorage = cartstorage;
     }
+    @Autowired
+    public void setOrderRepository(OrderRepository orderRepository) {this.orderRepository = orderRepository;}
 
     @Autowired
     @Qualifier("storageServicePasswordEncoder")
@@ -53,30 +59,42 @@ public class StorageService {
         return new Book(bookDaO.getId(), bookDaO.getName(), bookDaO.getAuthor(), bookDaO.getLanguage(), bookDaO.getPublishYear(), bookDaO.getGenre(), bookDaO.getISBN(), bookDaO.getPrice(), bookDaO.getPages(), bookDaO.getAnnotation(), bookDaO.getRating(), bookDaO.isNew(), bookDaO.getAmount(), bookDaO.getCover());
     }
 
+    @Transactional
     public void subtractFromCart(int user_id, int book_id, int amount) {
-        ConditionCartDaO oldConditionCartDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
-        if (oldConditionCartDaO.getAmount() - amount <= 0) {
-            cartstorage.delete(oldConditionCartDaO);
+        ConditionCartDaO oldCartPositionDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
+        if (oldCartPositionDaO.getAmount()-amount <= 0) {
+            cartstorage.delete(oldCartPositionDaO);
+            OrderDaO order = orderRepository.findCurrentOrderByUserId(user_id);
+            if (order != null && order.getCartPositions().size() == 1) {
+                orderRepository.delete(order);
+            }
         }
         else {
-            oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()-amount);
-            cartstorage.save(oldConditionCartDaO);
+            oldCartPositionDaO.setAmount(oldCartPositionDaO.getAmount()-amount);
+            cartstorage.save(oldCartPositionDaO);
         }
     }
 
-    public void clearCart(int user_id) {
+ /*   public void clearCart(int user_id) {
         cartstorage.deleteByUserId(user_id);
-    }
+    } */
 
+    @Transactional
     public void addToCart(int user_id, int book_id) {
-        ConditionCartDaO oldConditionCartDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
-        if (oldConditionCartDaO != null) {
-            oldConditionCartDaO.setAmount(oldConditionCartDaO.getAmount()+1);
-            cartstorage.save(oldConditionCartDaO);
+        ConditionCartDaO oldCartPositionDaO = cartstorage.findByUserIdAndBookId(user_id, book_id);
+        if (oldCartPositionDaO != null) {
+            oldCartPositionDaO.setAmount(oldCartPositionDaO.getAmount()+1);
+            cartstorage.save(oldCartPositionDaO);
         }
         else {
-            ConditionCartDaO newConditionCartDaO = new ConditionCartDaO(null, bookstorage.findById(book_id), 1, userstorage.findById(user_id));
-            cartstorage.save(newConditionCartDaO);
+            OrderDaO order = orderRepository.findCurrentOrderByUserId(user_id);
+            if (order == null) {
+                order = orderRepository.save(new OrderDaO(null, new ArrayList<>(), "Формируется", userstorage.findById(user_id)));
+            }
+            ConditionCartDaO newCartPositionDaO = new ConditionCartDaO(null, bookstorage.findById(book_id), 1, order);
+            order.getCartPositions().add(newCartPositionDaO);
+            cartstorage.save(newCartPositionDaO);
+            orderRepository.save(order);
         }
     }
 
@@ -93,18 +111,67 @@ public class StorageService {
     public List<ConditionCart> getCartBooks(int id) {
         List<ConditionCartDaO> cartPositionsDaO = cartstorage.findByUserId(id);
         List<ConditionCart> booksInCart = new ArrayList<>();
-        for (ConditionCartDaO conditionCartDaO : cartPositionsDaO) {
-            ConditionCart conditionCart = new ConditionCart(conditionCartDaO.getId(), conditionCartDaO.getBook(), conditionCartDaO.getAmount(), userstorage.findById(UserStorage.curUser));
-            booksInCart.add(conditionCart);
+        OrderDaO order = orderRepository.findCurrentOrderByUserId(id);
+        for (ConditionCartDaO cartPositionDaO : cartPositionsDaO) {
+            ConditionCart cartPosition = new ConditionCart(cartPositionDaO.getId(), cartPositionDaO.getBook(), cartPositionDaO.getAmount(), order);
+            booksInCart.add(cartPosition);
         }
         return booksInCart;
     }
+
+
+    @Transactional
+    public boolean makeOrder(int userId) {
+        OrderDaO order = orderRepository.findCurrentOrderByUserId(userId);
+
+        // Проверяем наличие книг на складе
+        boolean hasChanged = false;
+        for (ConditionCartDaO cartPositionDaO : order.getCartPositions()) {
+            BookDaO book = bookstorage.findById(cartPositionDaO.getBook().getId()).get();
+            if (book.getAmount() < cartPositionDaO.getAmount()) {
+                hasChanged = true;
+                // Если количество книг на складе недостаточно, уменьшаем количество в корзине
+                cartPositionDaO.setAmount(Math.max(0, book.getAmount()));
+                cartstorage.save(cartPositionDaO);
+            }
+        }
+
+        if (!hasChanged) {
+            // Если все книги есть на складе, оформляем заказ
+            for (ConditionCartDaO cartPositionDaO : order.getCartPositions()) {
+                BookDaO book = bookstorage.findById(cartPositionDaO.getBook().getId()).get();
+                book.setAmount(book.getAmount() - cartPositionDaO.getAmount());
+                bookstorage.save(book);
+            }
+            order.setStatus("Заказ оформлен");
+            order.setFinished();
+            orderRepository.save(order);
+        } else {
+            // Если количество книг в корзине было изменено, удаляем позиции с нулевым количеством
+            order.getCartPositions().removeIf(cartPositionDaO -> cartPositionDaO.getAmount() == 0);
+            if (order.getCartPositions().isEmpty()) {
+                orderRepository.delete(order);
+            } else {
+                orderRepository.save(order);
+            }
+        }
+
+        return !hasChanged;
+    }
+
+
     public float getCartTotal(int id) {
         return cartstorage.getTotalPriceByUserId(id);
     }
 
-    public void addUser(String username, String password) {
-        userstorage.save(new User(null, username, passwordEncoder.encode(password), "ROLE_USER"));
+    public boolean addUser(String username, String password) {
+        if (userstorage.existsByLogin(username)) {
+            return false;
+        }
+        else {
+            userstorage.save(new User(null, username, passwordEncoder.encode(password), "ROLE_USER"));
+            return true;
+        }
     }
 
 
@@ -119,4 +186,19 @@ public class StorageService {
         return bookstorage.save(bookDaO);
     }
 
+    public List<OrderDaO> getOrders(int id) {
+        return orderRepository.findByUserId(id);
+    }
+
+    public User getUser(int id) {
+        return  userstorage.findById(id);
+    }
+
+    public List<OrderDaO> getOrderById(Integer orderId, Integer userId) {
+        return orderRepository.findByIdAndUserId(orderId, userId);
+    }
+
+    public List<OrderDaO> getAllOrders() {
+        return (List<OrderDaO>) orderRepository.findAll();
+    }
 }

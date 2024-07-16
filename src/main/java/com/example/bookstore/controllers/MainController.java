@@ -1,5 +1,6 @@
 package com.example.bookstore.controllers;
 
+import com.example.bookstore.entities.OrderDaO;
 import com.example.bookstore.user.ConditionCart;
 import com.example.bookstore.user.User;
 import com.example.bookstore.service.StorageService;
@@ -20,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Setter
@@ -29,7 +29,6 @@ import java.util.List;
 public class MainController {
     private StorageService storageService;
     private AuthenticationManager authenticationManager;
-
 
     @GetMapping
     public String home(Model model) {
@@ -48,16 +47,6 @@ public class MainController {
         return "book";
     }
 
-    @Autowired
-    public void setBookStorage(StorageService storageService) {
-        this.storageService = storageService;
-    }
-
-    @Autowired
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
-        this.authenticationManager = authenticationManager;
-    }
-
     @GetMapping("cart")
     public String cart(Model model, @AuthenticationPrincipal User user, @RequestParam(required = false) Boolean successful) {
         List<ConditionCart> books = storageService.getCartBooks(user.getId());
@@ -73,12 +62,6 @@ public class MainController {
     @PostMapping("addToCart")
     public String addToCart(@RequestParam("bookId") int id, @AuthenticationPrincipal User user) {
         storageService.addToCart(user.getId(), id);
-        return "redirect:/book/?id=" + id;
-    }
-
-    @PostMapping("subtractFromCart")
-    public String subtractFromCart(@RequestParam("bookId") int id, @AuthenticationPrincipal User user) {
-        storageService.subtractFromCart(user.getId(), id, 1);
         return "redirect:/book/?id=" + id;
     }
 
@@ -117,7 +100,7 @@ public class MainController {
         return previousUrl != null ? "redirect:" + previousUrl : "redirect:/";
     }
 
-
+/*
     @PostMapping("/clearCart")
     public String clearCart(@AuthenticationPrincipal User user) {
         storageService.clearCart(user.getId());
@@ -145,9 +128,44 @@ public class MainController {
         String formattedDatePlus3Days = datePlus3Days.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
         model.addAttribute("formattedDatePlus3Days", formattedDatePlus3Days);
 
-        storageService.clearCart(user.getId());
+
+        return "order";
+
+    } */
+
+    @Autowired
+    public void setBookStorage(StorageService storageService) {
+        this.storageService = storageService;
+    }
+
+    @Autowired
+    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
+        this.authenticationManager = authenticationManager;
+    }
+
+    @PostMapping("/createOrder")
+    public String createOrder(Model model, @AuthenticationPrincipal User user) {
+        boolean successful = storageService.makeOrder(user.getId());
+        if (successful) {
+            return "redirect:/orders";
+        }
+        else {
+            return "redirect:/cart?successful=false";
+        }
+    }
+
+    @GetMapping("/orders")
+    public String showOrders(@AuthenticationPrincipal User user, Model model) {
+        List<OrderDaO> orders = storageService.getOrders(user.getId());
+        model.addAttribute("orders", orders);
         return "order";
     }
 
+    @GetMapping("/listorders")
+    public String showAllOrders(Model model) { // Убираем @AuthenticationPrincipal User user
+        List<OrderDaO> orders = storageService.getAllOrders(); // Получаем все заказы
+        model.addAttribute("orders", orders);
+        return "orders";
+    }
 
 }

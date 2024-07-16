@@ -28,8 +28,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserStorage userStorage;
-    @Autowired
-    private DataSource dataSource;
 
     @Autowired
     private CacheService cacheService;
@@ -46,6 +44,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             request.getSession().removeAttribute("previousUrl");
             return page != null ? page : "/"; // Перенаправляем на previousUrl
         }
+    }
+
+    @Override
+    @Bean
+    public AuthenticationManager authenticationManagerBean() throws Exception {return super.authenticationManagerBean();
+    }
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Override
@@ -93,15 +100,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 return user;
             }
         };
-    }
-
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManagerBean() throws Exception {return super.authenticationManagerBean();
-    }
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
 }

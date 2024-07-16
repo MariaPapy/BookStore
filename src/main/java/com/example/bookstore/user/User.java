@@ -1,4 +1,5 @@
 package com.example.bookstore.user;
+import com.example.bookstore.entities.OrderDaO;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -21,7 +22,7 @@ public class User implements UserDetails {
     private String login;
     private String password;
     @OneToMany(mappedBy = "user")
-    private List<ConditionCartDaO> cartPositions;
+    private List<OrderDaO> orders;
 
     private String role;
 
