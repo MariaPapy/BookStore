@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Книжный магазин</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            font-size: 0.4em;
+            color: #7d0f0f;;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f0b4c280;
+            font-weight: bold;
+        }
+
+        td:nth-child(4),
+        td:nth-child(6),
+        td:nth-child(8),
+        td:nth-child(9),
+        td:nth-child(10) {
+            text-align: center;
+        }
+
+        .book-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .book-cover {
+            width: 100px;
+            text-align: center;
+        }
+
+        .book-cover img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .book-title {
+            font-weight: bold;
+        }
+
+        .book-new {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-align: center;
+            z-index: 1;
+            font-size: 0.8em;
+            color:  #7d0f0f;;
+        }
+
+       .book-author {
+            position: relative;
+            text-align: left;
+        }
+
+        .book-status {
+            font-size: 0.6em;
+            color: #777;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            padding: 5px 0px;
+            padding-right: 20px;
+            border-radius: 5px;
+            text-align: right;
+            z-index: 1;
+        }
+
+        a {
+            color: #7d0f0f;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            background-color: #d87093;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .login-button:hover {
+            background-color: #c75581;
+            text-decoration: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <h1>Магазин книг издательства АСТ</h1>
+    <div>
+        <a href="/login" class="login-button">Войти в аккаунт</a>
+    </div>
+        <a th:href="@{../cart}" class="login-button">Корзина</a>
+    <div sec:authorize="hasRole('ROLE_ADMIN')">
+        <button class="login-button" type="button" onclick="location.href='/employee/add-book'">Сотруднику</button>
+    </div>
+
+</header>
+
+<table>
+    <thead>
+    <tr>
+        <th>Книга</th>
+        <th>Автор</th>
+        <th>Год издания</th>
+        <th>Жанр</th>
+        <th>Рейтинг</th>
+        <th>Цена</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="book : ${books}">
+
+        <td class="book-info">
+            <div class="book-cover">
+                <a th:href="@{/book/(id=${book.id})}" class="book-link">
+                    <img th:src="|/images/${book.cover}.png|" alt="Обложка" />
+                </a>
+                <h3 class="book-status" th:text="${book.status}"></h3>
+            </div>
+            <div class="book-new" th:if="${book.isNew}">Новинка!</div>
+            <div class="book-author">
+                <a th:href="@{/book/(id=${book.id})}" class="book-title" th:text="${book.name}"></a>
+            </div>
+        </td>
+
+        <td th:text="${book.author}"></td>
+        <td th:text="${book.publishYear}"></td>
+        <td th:text="${book.genre}"></td>
+        <td th:text="${book.rating}"></td>
+        <td th:text="${book.price}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
+
+
+
