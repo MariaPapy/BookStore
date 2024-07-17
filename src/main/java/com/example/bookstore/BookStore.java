@@ -150,6 +150,7 @@ public class BookStore {
             userStorage.save(new User(null, "user1", passwordEncoder.encode("000"), "ROLE_USER"));
             userStorage.save(new User(null, "user2", passwordEncoder.encode("000"), "ROLE_USER"));
 
+
         };
     }
 }
